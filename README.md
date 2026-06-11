@@ -4,7 +4,7 @@ Proyecto MVC clásico con `Jakarta Servlet/JSP`, `Maven`, `Tomcat 10.1+` y `MySQ
 
 ## Stack
 
-- Java 22
+- Java 21 o 22
 - Maven 3.9+
 - Tomcat 10.1+
 - MySQL 9.x
@@ -16,23 +16,50 @@ git clone https://github.com/FelixTDev/VeterinariaWebIntegrado.git
 cd VeterinariaWebIntegrado
 ```
 
-## Configurar Java 22
+## Configurar Java
 
-Verifica que el entorno use JDK 22:
+El proyecto compila por defecto con Java 21 para evitar fallos en máquinas que todavía no tienen JDK 22.
+
+Verifica tu entorno:
 
 ```bash
 java -version
 mvn -version
 ```
 
-Ambos comandos deben mostrar Java 22.
+Ambos comandos deben mostrar al menos Java 21.
 
 Si estás en NetBeans:
 
 1. Abre el proyecto Maven.
 2. Ve a `Project Properties > Libraries`.
-3. Selecciona la plataforma `JDK 22`.
+3. Selecciona la plataforma `JDK 21` o `JDK 22`.
 4. Verifica que el servidor asignado sea `Tomcat 10.1+`.
+
+## Si quieres usar Java 22
+
+Tienes dos opciones:
+
+1. Cambiar temporalmente el release al compilar:
+
+```bash
+mvn clean test -Dmaven.compiler.release=22
+mvn clean package -Dmaven.compiler.release=22
+```
+
+2. O editar [pom.xml](/C:/Users/felix/PROYECTO-ROUS/pom.xml) y cambiar:
+
+```xml
+<maven.compiler.release>21</maven.compiler.release>
+```
+
+por:
+
+```xml
+<maven.compiler.release>22</maven.compiler.release>
+```
+
+Haz esto solo si `java -version` y `mvn -version` ya están corriendo con JDK 22.
 
 ## Base de datos
 
