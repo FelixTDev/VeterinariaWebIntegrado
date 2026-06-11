@@ -1,0 +1,206 @@
+1. Alcance Del Sistema
+El sistema web para la veterinaria permitirá administrar:
+
+gestión de clientes
+gestión de mascotas domésticas
+gestión de productos veterinarios
+gestión de citas
+historial clínico
+generación de comprobantes de pago
+reportes administrativos y operativos
+Su objetivo es mejorar el control de atención, ventas, seguimiento clínico y organización general de la veterinaria.
+
+2. Lógica De Negocio
+La lógica de negocio define las reglas que el sistema debe cumplir para operar correctamente.
+
+2.1 Gestión de clientes
+
+Cada cliente debe registrarse con datos obligatorios como DNI, nombres, apellidos, teléfono y dirección.
+No se permitirá registrar dos clientes con el mismo DNI.
+Un cliente puede tener una o varias mascotas registradas.
+Un cliente podrá actualizar sus datos, pero el DNI debe conservar unicidad.
+No se podrá eliminar un cliente si tiene mascotas, citas o comprobantes asociados; en su lugar podrá cambiarse a estado inactivo.
+2.2 Gestión de mascotas domésticas
+
+Toda mascota debe estar asociada a un cliente responsable.
+Se registrarán datos como nombre, especie, raza, sexo, fecha aproximada de nacimiento, color y peso.
+Solo se admitirán mascotas domésticas definidas por la veterinaria, por ejemplo: perro, gato, conejo, ave u otras permitidas.
+No se podrá registrar una mascota sin propietario.
+Una mascota puede tener múltiples citas e historiales clínicos.
+Si una mascota queda inactiva o fallecida, el sistema debe conservar su historial clínico para consulta.
+2.3 Gestión de productos veterinarios
+
+Los productos veterinarios incluyen medicamentos, inyecciones, vacunas, antiparasitarios, vitaminas, insumos y otros artículos.
+Cada producto debe tener código único, nombre, tipo, stock, precio de compra, precio de venta y fecha de vencimiento si aplica.
+No se podrá vender un producto con stock igual a 0.
+No se podrá registrar stock negativo.
+El sistema debe alertar productos con stock mínimo o cercanos a vencimiento.
+Cuando un producto sea usado en atención clínica o vendido, el stock debe descontarse automáticamente.
+Si se anula una venta o un consumo clínico registrado erróneamente, el stock debe restituirse según validación del sistema.
+2.4 Gestión de citas
+
+Toda cita debe asociarse a una mascota y a su cliente responsable.
+La cita debe registrar fecha, hora, motivo, estado y veterinario asignado si corresponde.
+No se podrá registrar una cita en una fecha pasada.
+No se deberá permitir duplicidad de horario para el mismo veterinario si ya existe una cita activa en ese rango.
+Los estados de la cita pueden ser: pendiente, confirmada, atendida, cancelada y no asistió.
+Solo una cita atendida puede generar un registro clínico formal.
+Una cita cancelada no debe generar cobro ni historial clínico, salvo observación administrativa.
+2.5 Historial clínico
+
+El historial clínico pertenece a una mascota y debe almacenar todas sus atenciones.
+Cada atención clínica puede registrar síntomas, diagnóstico, tratamiento, peso, temperatura, observaciones y productos aplicados.
+No se podrá crear historial clínico sin una mascota registrada.
+Solo personal autorizado podrá registrar o modificar información clínica.
+Las atenciones clínicas no deben eliminarse físicamente; cualquier corrección debe quedar trazable.
+El historial clínico debe poder consultarse cronológicamente por mascota.
+2.6 Generación de comprobantes de pago
+
+Todo cobro por consulta, procedimiento o venta de producto debe generar un comprobante.
+El comprobante debe contener datos del cliente, mascota, detalle del servicio o producto, cantidades, precios, subtotal y total.
+No se podrá generar comprobante sin al menos un concepto de cobro.
+Si el comprobante incluye productos, el stock debe haber sido validado previamente.
+Los comprobantes pueden tener estado emitido, pagado o anulado.
+Un comprobante anulado debe quedar registrado para auditoría.
+2.7 Reportes
+
+El sistema debe permitir consultar reportes por rango de fechas.
+Los reportes pueden incluir citas diarias, clientes registrados, mascotas atendidas, productos más vendidos, stock actual e ingresos.
+Los reportes deben generarse con base en información persistida en la base de datos.
+Solo usuarios autorizados podrán acceder a reportes administrativos o financieros.
+3. Requisitos Funcionales (RF)
+
+Módulo: Gestión de clientes
+
+RF01: El sistema debe permitir registrar clientes.
+RF02: El sistema debe permitir listar clientes registrados.
+RF03: El sistema debe permitir buscar clientes por DNI, nombre o teléfono.
+RF04: El sistema debe permitir editar los datos de un cliente.
+RF05: El sistema debe permitir cambiar el estado de un cliente a activo o inactivo.
+RF06: El sistema debe validar que no exista duplicidad de DNI.
+Módulo: Gestión de mascotas domésticas
+
+RF07: El sistema debe permitir registrar mascotas domésticas asociadas a un cliente.
+RF08: El sistema debe permitir listar mascotas registradas.
+RF09: El sistema debe permitir buscar mascotas por nombre, especie o propietario.
+RF10: El sistema debe permitir actualizar la información de una mascota.
+RF11: El sistema debe permitir consultar las mascotas asociadas a un cliente.
+RF12: El sistema debe conservar el historial de mascotas inactivas o fallecidas.
+Módulo: Gestión de productos veterinarios
+
+RF13: El sistema debe permitir registrar productos veterinarios.
+RF14: El sistema debe permitir listar productos disponibles.
+RF15: El sistema debe permitir actualizar datos de productos.
+RF16: El sistema debe permitir controlar el stock de productos.
+RF17: El sistema debe alertar productos con stock mínimo.
+RF18: El sistema debe alertar productos próximos a vencer.
+RF19: El sistema debe descontar automáticamente el stock al registrar una venta o aplicación clínica.
+RF20: El sistema debe impedir la venta o uso de productos sin stock suficiente.
+Módulo: Gestión de citas
+
+RF21: El sistema debe permitir registrar citas.
+RF22: El sistema debe permitir listar citas por fecha.
+RF23: El sistema debe permitir buscar citas por cliente, mascota o estado.
+RF24: El sistema debe permitir reprogramar citas.
+RF25: El sistema debe permitir cancelar citas.
+RF26: El sistema debe permitir cambiar el estado de una cita.
+RF27: El sistema debe validar disponibilidad de horario.
+RF28: El sistema debe impedir registrar citas en fechas pasadas.
+Módulo: Historial clínico
+
+RF29: El sistema debe permitir registrar una atención clínica para una mascota.
+RF30: El sistema debe permitir registrar diagnóstico, tratamiento y observaciones.
+RF31: El sistema debe permitir asociar productos aplicados durante la atención.
+RF32: El sistema debe permitir consultar el historial clínico completo de una mascota.
+RF33: El sistema debe mostrar las atenciones en orden cronológico.
+RF34: El sistema debe restringir el acceso al historial clínico a usuarios autorizados.
+Módulo: Comprobantes de pago
+
+RF35: El sistema debe permitir generar comprobantes por servicios veterinarios.
+RF36: El sistema debe permitir generar comprobantes por venta de productos.
+RF37: El sistema debe permitir emitir comprobantes mixtos de servicios y productos.
+RF38: El sistema debe calcular subtotal, impuestos si aplican y total.
+RF39: El sistema debe permitir consultar comprobantes emitidos.
+RF40: El sistema debe permitir anular comprobantes, dejando trazabilidad.
+Módulo: Reportes
+
+RF41: El sistema debe permitir generar reportes de citas por fecha.
+RF42: El sistema debe permitir generar reportes de clientes y mascotas registradas.
+RF43: El sistema debe permitir generar reportes de productos con bajo stock.
+RF44: El sistema debe permitir generar reportes de productos próximos a vencer.
+RF45: El sistema debe permitir generar reportes de ingresos por ventas y atenciones.
+RF46: El sistema debe permitir filtrar reportes por rango de fechas.
+4. Requisitos No Funcionales (RNF)
+
+RNF01: El sistema debe desarrollarse en Java usando arquitectura MVC.
+RNF02: La capa de presentación debe implementarse con JSP.
+RNF03: El control de peticiones debe realizarse mediante Servlets.
+RNF04: El acceso a datos debe implementarse con el patrón DAO.
+RNF05: El sistema debe desplegarse en servidor Apache Tomcat.
+RNF06: La base de datos debe garantizar persistencia y consistencia de la información.
+RNF07: El sistema debe validar campos obligatorios antes de guardar datos.
+RNF08: El sistema debe mostrar mensajes claros de error y confirmación al usuario.
+RNF09: El tiempo de respuesta para consultas comunes no debe exceder 5 segundos en condiciones normales.
+RNF10: El sistema debe manejar autenticación de usuarios.
+RNF11: El sistema debe manejar autorización por roles, por ejemplo administrador, recepcionista y veterinario.
+RNF12: La información clínica y financiera debe estar protegida contra accesos no autorizados.
+RNF13: El sistema debe mantener integridad referencial entre clientes, mascotas, citas, historial y comprobantes.
+RNF14: El sistema debe permitir mantenimiento y escalabilidad gracias a la separación por capas.
+RNF15: La interfaz debe ser usable en navegadores modernos.
+RNF16: El sistema debe registrar operaciones críticas como anulaciones o cambios importantes.
+RNF17: El sistema debe permitir respaldo de la información de la base de datos.
+RNF18: El código debe ser modular y reutilizable para facilitar futuras ampliaciones.
+5. Reglas De Negocio Resumidas
+Estas te sirven como sección adicional si tu docente pide reglas explícitas.
+
+RN01: No puede existir un cliente con el mismo DNI que otro.
+RN02: Toda mascota debe tener un propietario registrado.
+RN03: No puede registrarse una cita para una mascota inexistente.
+RN04: No puede registrarse una cita en una fecha pasada.
+RN05: No puede venderse o aplicarse un producto sin stock suficiente.
+RN06: Todo uso clínico de producto debe descontar stock.
+RN07: Solo una cita atendida puede originar una atención clínica formal.
+RN08: Todo comprobante debe estar asociado a al menos un servicio o producto.
+RN09: Los comprobantes anulados deben conservarse en el sistema con trazabilidad.
+RN10: El historial clínico no debe eliminarse aunque la mascota quede inactiva.
+6. Módulos Del MVC Que Te Recomiendo
+Para que esto quede bien llevado a código:
+
+Modelos
+
+Cliente
+Mascota
+Producto
+Cita
+HistorialClinico
+DetalleHistorial
+Comprobante
+DetalleComprobante
+Usuario
+DAO
+
+ClienteDAO
+MascotaDAO
+ProductoDAO
+CitaDAO
+HistorialClinicoDAO
+ComprobanteDAO
+UsuarioDAO
+Servlets
+
+ClienteServlet
+MascotaServlet
+ProductoServlet
+CitaServlet
+HistorialServlet
+ComprobanteServlet
+ReporteServlet
+JSP
+
+clientes.jsp
+mascotas.jsp
+productos.jsp
+citas.jsp
+historial.jsp
+comprobante.jsp
+reportes.jsp
