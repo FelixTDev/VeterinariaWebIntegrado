@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet({"/", "/login"})
+@WebServlet("/login")
 public class LoginServlet extends BaseServlet {
     private final AuthService authService = new AuthService();
 

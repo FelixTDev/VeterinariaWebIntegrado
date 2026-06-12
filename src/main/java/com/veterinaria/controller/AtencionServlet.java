@@ -33,7 +33,11 @@ public class AtencionServlet extends BaseServlet {
                 request.setAttribute("atencion", atencionService.get(WebUtil.getInt(request, "id", 0)));
             }
             if (request.getParameter("idMascota") != null && !request.getParameter("idMascota").isBlank()) {
-                request.setAttribute("historial", atencionService.listByMascota(WebUtil.getInt(request, "idMascota", 0)));
+                var historial = atencionService.listByMascota(WebUtil.getInt(request, "idMascota", 0));
+                request.setAttribute("historial", historial);
+                if (request.getAttribute("atencion") == null && !historial.isEmpty()) {
+                    request.setAttribute("atencion", atencionService.get(historial.get(0).getIdAtencion()));
+                }
             }
             request.setAttribute("citas", citaService.list(null, "ATENDIDA", null));
             request.setAttribute("mascotas", mascotaService.list(null));

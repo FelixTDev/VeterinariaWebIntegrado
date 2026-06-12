@@ -12,6 +12,8 @@ import java.util.Optional;
 
 public class CitaDao {
     public List<Cita> list(String fecha, String estado, String search) throws SQLException {
+        String fechaFiltro = fecha == null || fecha.isBlank() ? null : fecha.trim();
+        String estadoFiltro = estado == null || estado.isBlank() ? null : estado.trim().toUpperCase();
         String sql = """
                 SELECT c.*, CONCAT(cl.nombres, ' ', cl.apellidos) AS cliente_nombre,
                        m.nombre AS mascota_nombre,
@@ -21,7 +23,7 @@ public class CitaDao {
                 INNER JOIN mascota m ON m.id_mascota = c.id_mascota
                 LEFT JOIN usuario u ON u.id_usuario = c.id_veterinario
                 WHERE (? IS NULL OR c.fecha_cita = ?)
-                  AND (? IS NULL OR c.estado = ?)
+                  AND (? IS NULL OR UPPER(TRIM(c.estado)) = ?)
                   AND (? IS NULL OR CONCAT(cl.nombres, ' ', cl.apellidos) LIKE ? OR m.nombre LIKE ?)
                 ORDER BY c.fecha_cita DESC, c.hora_cita DESC
                 """;
@@ -29,10 +31,10 @@ public class CitaDao {
         String like = search == null || search.isBlank() ? null : "%" + search.trim() + "%";
         try (Connection connection = Database.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, fecha);
-            statement.setString(2, fecha);
-            statement.setString(3, estado == null || estado.isBlank() ? null : estado);
-            statement.setString(4, estado == null || estado.isBlank() ? null : estado);
+            statement.setString(1, fechaFiltro);
+            statement.setString(2, fechaFiltro);
+            statement.setString(3, estadoFiltro);
+            statement.setString(4, estadoFiltro);
             statement.setString(5, like);
             statement.setString(6, like);
             statement.setString(7, like);

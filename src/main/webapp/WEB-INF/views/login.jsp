@@ -1,32 +1,251 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="es">
+<html class="light" lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Login | Veterinaria</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - VetWeb Integrado</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-bright": "#f8f9fa",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-tertiary-container": "#453f20",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2e3132",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-variant": "#e1e3e4",
+                        "on-primary-container": "#90a8ff",
+                        "secondary-container": "#6cf8bb",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "primary-fixed": "#dce1ff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-background": "#191c1d",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container": "#edeeef",
+                        "on-tertiary-fixed-variant": "#4d4727",
+                        "tertiary-fixed": "#ede3b8",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "tertiary": "#665f3d",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#00714d",
+                        "on-surface-variant": "#444651",
+                        "tertiary-container": "#b4ab84",
+                        "primary-container": "#1e3a8a",
+                        "surface-container-low": "#f3f4f5",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#264191",
+                        "on-primary-fixed": "#00164e",
+                        "secondary": "#006c49",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#4059aa",
+                        "outline-variant": "#c5c5d3",
+                        "background": "#f8f9fa",
+                        "inverse-primary": "#b6c4ff",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#00236f",
+                        "tertiary-fixed-dim": "#d1c79d",
+                        "secondary-fixed": "#6ffbbe",
+                        "error": "#ba1a1a",
+                        "on-surface": "#191c1d",
+                        "outline": "#757682",
+                        "surface-dim": "#d9dadb",
+                        "on-tertiary-fixed": "#201c02",
+                        "on-tertiary": "#ffffff"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                    spacing: {
+                        xl: "2rem",
+                        lg: "1.5rem",
+                        md: "1rem",
+                        margin_mobile: "16px",
+                        sm: "0.5rem",
+                        gutter: "24px",
+                        xs: "0.25rem",
+                        base: "4px",
+                        sidebar_width: "280px"
+                    },
+                    fontFamily: {
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    fontSize: {
+                        "label-md": ["12px", { lineHeight: "16px", fontWeight: "600" }],
+                        "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+                        "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "display-lg": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }]
+                    }
+                }
+            }
+        };
+    </script>
 </head>
-<body>
-<div class="login-shell">
-    <div class="card login-card">
-        <h1>Acceso al Sistema</h1>
-        <p>Usuarios demo del SQL actual: <strong>admin</strong>, <strong>lquispe</strong>, <strong>atorres</strong>.</p>
+<body class="bg-surface-bright flex items-center justify-center min-h-screen p-md">
+<main class="w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-2 bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant shadow-sm">
+    <section class="hidden md:flex flex-col justify-center p-xl bg-primary text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/20 rounded-full -mr-24 -mt-24"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-secondary-fixed/10 rounded-full -ml-12 -mb-12"></div>
+        <div class="relative z-10 space-y-lg">
+            <div class="flex items-center gap-md">
+                <div class="w-12 h-12 bg-surface-container-lowest rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-[32px]">pets</span>
+                </div>
+                <h1 class="font-display-lg text-display-lg tracking-tight">VetWeb Integrado</h1>
+            </div>
+            <p class="font-body-lg text-body-lg text-primary-fixed leading-relaxed max-w-md">
+                La plataforma integral diseñada para veterinarios que priorizan la excelencia clínica y la gestión eficiente de pacientes.
+            </p>
+            <div class="space-y-md pt-lg">
+                <div class="flex items-center gap-md bg-white/5 p-md rounded-lg border border-white/10">
+                    <span class="material-symbols-outlined text-secondary-fixed">clinical_notes</span>
+                    <div>
+                        <p class="font-label-md text-label-md text-white">Historial Clínico Digital</p>
+                        <p class="text-xs text-primary-fixed/80">Acceso inmediato a diagnósticos y tratamientos.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-md bg-white/5 p-md rounded-lg border border-white/10">
+                    <span class="material-symbols-outlined text-secondary-fixed">schedule</span>
+                    <div>
+                        <p class="font-label-md text-label-md text-white">Agenda Inteligente</p>
+                        <p class="text-xs text-primary-fixed/80">Optimiza tus citas y recursos en tiempo real.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-xl pt-xl">
+                <img
+                    alt="Clinic Interior"
+                    class="rounded-lg shadow-lg border border-white/20 opacity-90 object-cover h-48 w-full"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmBCi8R-YBkzlRMZaJtX4DUpBWYYmfKVGxSkmeYq3SzfBnzkzK6AflaLQibJc6cki0zPhqQctEY4py2ooMDEPishsRd4UV5Spsgp_VvUr_O_VgPmk9UaJyEXcqyCnqygRu4y6m3n5RnzBTiGvVh57gnaX2SbJzkTD0pCX3pL6vQj_6h6jyKDdqAT4RvP3MbgQf95Ad_2uJaiTfaBdeO5--vFgL2EtcX--zBKxyQNz1EeDoojdOvH482UShyyy3IfZGfB18YVopJzCS"
+                >
+            </div>
+        </div>
+    </section>
+
+    <section class="flex flex-col justify-center p-lg md:p-xl space-y-lg">
+        <div class="space-y-sm text-center md:text-left">
+            <div class="md:hidden flex justify-center mb-md">
+                <span class="material-symbols-outlined text-primary text-[48px]">pets</span>
+            </div>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface">Bienvenido de nuevo</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant">Ingrese sus credenciales para acceder al sistema.</p>
+        </div>
+
         <c:if test="${not empty error}">
-            <div class="message error">${error}</div>
+            <div class="flex items-start gap-sm p-md bg-error-container text-on-error-container rounded-lg border border-error/20">
+                <span class="material-symbols-outlined text-error">error</span>
+                <div class="flex-1">
+                    <p class="font-label-md text-label-md">Error de autenticación</p>
+                    <p class="text-[12px]">${error}</p>
+                </div>
+            </div>
         </c:if>
-        <form method="post" action="${pageContext.request.contextPath}/login" class="grid">
-            <div>
-                <label>Usuario</label>
-                <input type="text" name="username" required>
+
+        <form class="space-y-md" method="post" action="${pageContext.request.contextPath}/login">
+            <div class="space-y-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="username">Usuario</label>
+                <div class="relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-3 text-outline">person</span>
+                    <input class="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-md text-body-md" id="username" name="username" placeholder="Ingrese su usuario" type="text" required>
+                </div>
             </div>
-            <div>
-                <label>Contraseña</label>
-                <input type="password" name="password" required>
+            <div class="space-y-xs">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="password">Contraseña</label>
+                <div class="relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-3 text-outline">lock</span>
+                    <input class="w-full pl-10 pr-10 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-md text-body-md" id="password" name="password" placeholder="********" type="password" required>
+                    <button class="absolute right-3 text-outline hover:text-on-surface transition-colors w-auto bg-transparent p-0 border-0" type="button" id="togglePassword">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </div>
             </div>
-            <button type="submit">Ingresar</button>
+            <div class="flex items-center justify-between py-xs gap-sm">
+                <label class="flex items-center gap-xs cursor-pointer group">
+                    <input class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" name="remember">
+                    <span class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors">Recordarme</span>
+                </label>
+                <a class="font-label-md text-label-md text-primary hover:underline" href="#">¿Olvidó su contraseña?</a>
+            </div>
+            <button class="w-full bg-primary hover:opacity-90 text-on-primary py-3 px-lg rounded-lg font-label-md text-body-lg transition-all transform active:scale-[0.98] shadow-md flex items-center justify-center gap-sm" type="submit">
+                Ingresar
+                <span class="material-symbols-outlined">login</span>
+            </button>
         </form>
-    </div>
-</div>
+
+        <div class="pt-lg border-t border-outline-variant">
+            <p class="font-label-md text-label-md text-on-surface-variant mb-md text-center">Usuarios de demostración</p>
+            <div class="flex flex-wrap justify-center gap-sm">
+                <button class="px-md py-xs bg-surface-container text-on-surface-variant rounded-full text-[12px] font-semibold hover:bg-surface-container-high hover:text-primary transition-colors border border-outline-variant/30 w-auto" type="button" data-user="admin" data-password="admin123">admin</button>
+                <button class="px-md py-xs bg-surface-container text-on-surface-variant rounded-full text-[12px] font-semibold hover:bg-surface-container-high hover:text-primary transition-colors border border-outline-variant/30 w-auto" type="button" data-user="lquispe" data-password="vet123">lquispe</button>
+                <button class="px-md py-xs bg-surface-container text-on-surface-variant rounded-full text-[12px] font-semibold hover:bg-surface-container-high hover:text-primary transition-colors border border-outline-variant/30 w-auto" type="button" data-user="atorres" data-password="recep123">atorres</button>
+            </div>
+        </div>
+
+        <footer class="text-center pt-md">
+            <p class="font-body-md text-body-md text-on-surface-variant">
+                ¿No tiene una cuenta? <a class="text-primary font-semibold hover:underline" href="#">Contacte con soporte</a>
+            </p>
+        </footer>
+    </section>
+</main>
+<script>
+    (function () {
+        const userInput = document.getElementById("username");
+        const passInput = document.getElementById("password");
+        const toggleButton = document.getElementById("togglePassword");
+        const toggleIcon = toggleButton.querySelector(".material-symbols-outlined");
+
+        document.querySelectorAll("[data-user]").forEach((button) => {
+            button.addEventListener("click", () => {
+                userInput.value = button.dataset.user || "";
+                passInput.value = button.dataset.password || "";
+                userInput.classList.add("ring-2", "ring-secondary-fixed");
+                setTimeout(() => {
+                    userInput.classList.remove("ring-2", "ring-secondary-fixed");
+                }, 500);
+            });
+        });
+
+        toggleButton.addEventListener("click", () => {
+            const isPassword = passInput.type === "password";
+            passInput.type = isPassword ? "text" : "password";
+            toggleIcon.textContent = isPassword ? "visibility_off" : "visibility";
+        });
+    }());
+</script>
 </body>
 </html>
