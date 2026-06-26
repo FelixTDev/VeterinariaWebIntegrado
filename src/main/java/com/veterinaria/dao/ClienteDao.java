@@ -81,6 +81,28 @@ public class ClienteDao {
         }
     }
 
+    public boolean existsByCorreo(String correo, Integer excludeId) throws SQLException {
+        if (correo == null || correo.isBlank()) {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM cliente WHERE correo = ? AND (? IS NULL OR id_cliente <> ?)";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, correo.trim());
+            if (excludeId == null) {
+                statement.setObject(2, null);
+                statement.setObject(3, null);
+            } else {
+                statement.setInt(2, excludeId);
+                statement.setInt(3, excludeId);
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
     public void save(Cliente cliente) throws SQLException {
         String sql = """
                 INSERT INTO cliente (nombres, apellidos, dni, telefono, correo, direccion, estado)

@@ -1,186 +1,13 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<!DOCTYPE html>
-<html class="light" lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario de Productos - VetWeb Integrado</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            line-height: 1;
-        }
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-    </style>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "surface-bright": "#f8f9fa",
-                        "on-secondary-fixed-variant": "#005236",
-                        "on-tertiary-container": "#453f20",
-                        "on-error-container": "#93000a",
-                        "inverse-surface": "#2e3132",
-                        "secondary-fixed-dim": "#4edea3",
-                        "surface-variant": "#e1e3e4",
-                        "on-primary-container": "#90a8ff",
-                        "secondary-container": "#6cf8bb",
-                        "on-primary": "#ffffff",
-                        "surface-container-high": "#e7e8e9",
-                        "primary-fixed": "#dce1ff",
-                        "inverse-on-surface": "#f0f1f2",
-                        "on-background": "#191c1d",
-                        "on-secondary-fixed": "#002113",
-                        "surface-container": "#edeeef",
-                        "on-tertiary-fixed-variant": "#4d4727",
-                        "tertiary-fixed": "#ede3b8",
-                        "surface-container-highest": "#e1e3e4",
-                        "primary-fixed-dim": "#b6c4ff",
-                        "tertiary": "#665f3d",
-                        "on-secondary": "#ffffff",
-                        "on-secondary-container": "#00714d",
-                        "on-surface-variant": "#444651",
-                        "tertiary-container": "#b4ab84",
-                        "primary-container": "#1e3a8a",
-                        "surface-container-low": "#f3f4f5",
-                        "on-error": "#ffffff",
-                        "on-primary-fixed-variant": "#264191",
-                        "on-primary-fixed": "#00164e",
-                        "secondary": "#006c49",
-                        "surface": "#f8f9fa",
-                        "surface-tint": "#4059aa",
-                        "outline-variant": "#c5c5d3",
-                        "background": "#f8f9fa",
-                        "inverse-primary": "#b6c4ff",
-                        "error-container": "#ffdad6",
-                        "surface-container-lowest": "#ffffff",
-                        "primary": "#00236f",
-                        "tertiary-fixed-dim": "#d1c79d",
-                        "secondary-fixed": "#6ffbbe",
-                        "error": "#ba1a1a",
-                        "on-surface": "#191c1d",
-                        "outline": "#757682",
-                        "surface-dim": "#d9dadb",
-                        "on-tertiary-fixed": "#201c02",
-                        "on-tertiary": "#ffffff"
-                    },
-                    borderRadius: {
-                        DEFAULT: "0.25rem",
-                        lg: "0.5rem",
-                        xl: "0.75rem",
-                        full: "9999px"
-                    },
-                    spacing: {
-                        xl: "2rem",
-                        lg: "1.5rem",
-                        md: "1rem",
-                        margin_mobile: "16px",
-                        sm: "0.5rem",
-                        gutter: "24px",
-                        xs: "0.25rem",
-                        base: "4px",
-                        sidebar_width: "280px"
-                    },
-                    fontFamily: {
-                        "label-md": ["Inter"],
-                        "body-md": ["Inter"],
-                        "headline-lg": ["Inter"],
-                        "headline-md": ["Inter"],
-                        "display-lg": ["Inter"],
-                        "body-lg": ["Inter"]
-                    },
-                    fontSize: {
-                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                        "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
-                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-<c:set var="userInitial" value="${fn:toUpperCase(fn:substring(sessionScope.userSession.username, 0, 1))}"/>
-<aside class="fixed left-0 top-0 h-screen w-[280px] bg-[#111827] flex flex-col py-lg z-50">
-    <div class="px-lg mb-xl">
-        <h1 class="text-headline-md font-headline-md text-surface-container-lowest tracking-tight">VetWeb Integrado</h1>
-        <p class="text-label-md font-label-md text-outline-variant opacity-60">Veterinary Clinic Management</p>
-    </div>
-    <nav class="flex-1 px-sm space-y-1 custom-scrollbar overflow-y-auto">
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="text-body-md font-body-md">Dashboard</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/clientes"><span class="material-symbols-outlined">group</span><span class="text-body-md font-body-md">Clientes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/mascotas"><span class="material-symbols-outlined">pets</span><span class="text-body-md font-body-md">Mascotas</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary-fixed font-bold border-r-4 border-secondary-fixed bg-on-primary-fixed-variant/10 transition-all" href="${pageContext.request.contextPath}/app/productos"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span><span class="text-body-md font-body-md">Productos</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/catalogos"><span class="material-symbols-outlined">category</span><span class="text-body-md font-body-md">Catalogos</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/citas"><span class="material-symbols-outlined">calendar_today</span><span class="text-body-md font-body-md">Citas</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/atenciones"><span class="material-symbols-outlined">medical_services</span><span class="text-body-md font-body-md">Atenciones</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/comprobantes"><span class="material-symbols-outlined">receipt_long</span><span class="text-body-md font-body-md">Comprobantes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/reportes"><span class="material-symbols-outlined">bar_chart</span><span class="text-body-md font-body-md">Reportes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/logout"><span class="material-symbols-outlined">logout</span><span class="text-body-md font-body-md">Cerrar sesion</span></a>
-    </nav>
-    <div class="mt-auto px-lg border-t border-surface-variant/10 pt-lg">
-        <div class="flex items-center gap-md">
-            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">${userInitial}</div>
-            <div class="overflow-hidden">
-                <p class="text-label-md font-label-md text-surface-bright truncate">${sessionScope.userSession.nombreCompleto}</p>
-                <p class="text-[10px] text-outline-variant uppercase tracking-wider">${sessionScope.userSession.rolNombre}</p>
-            </div>
-        </div>
-    </div>
-</aside>
+<c:set var="pageTitle" value="Productos"/>
+<c:set var="headerSearchPlaceholder" value="Buscar productos, lotes o codigos..."/>
+<%@ include file="includes/app-shell.jspf" %>
 
-<main class="ml-[280px] w-[calc(100%-280px)] min-h-screen flex flex-col">
-    <header class="sticky top-0 z-40 bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-lg">
-        <form method="get" class="flex items-center gap-xl w-full max-w-2xl">
-            <div class="relative w-full max-w-md">
-                <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">search</span>
-                <input class="w-full pl-xl pr-md py-sm bg-surface-container rounded-lg border-none focus:ring-2 focus:ring-primary text-body-md" name="search" value="${param.search}" placeholder="Buscar productos, lotes o codigos..." type="text">
-            </div>
+        <form method="get" class="hidden" id="productHeaderSearchForm">
+            <input name="search" type="hidden" value="${param.search}" id="productHeaderSearchMirror">
         </form>
-        <div class="flex items-center gap-md">
-            <button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined">notifications</span></button>
-            <button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined">settings</span></button>
-            <div class="h-8 w-px bg-outline-variant mx-sm"></div>
-            <button class="flex items-center gap-sm bg-primary text-on-primary px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-opacity w-auto" id="addProductBtn" type="button"><span class="material-symbols-outlined text-[20px]">add</span>NUEVO PRODUCTO</button>
-        </div>
-    </header>
-
-    <div class="p-lg space-y-lg bg-surface-bright flex-1">
-        <c:if test="${not empty sessionScope.flash}">
-            <div class="flex items-start gap-sm p-md bg-secondary-container text-on-secondary-container rounded-lg border border-secondary/20">
-                <span class="material-symbols-outlined">check_circle</span>
-                <div class="flex-1">
-                    <p class="font-label-md text-label-md">Operacion exitosa</p>
-                    <p class="text-[12px]">${sessionScope.flash}</p>
-                </div>
-            </div>
-            <% session.removeAttribute("flash"); %>
-        </c:if>
-        <c:if test="${not empty error}">
-            <div class="flex items-start gap-sm p-md bg-error-container text-on-error-container rounded-lg border border-error/20">
-                <span class="material-symbols-outlined text-error">error</span>
-                <div class="flex-1">
-                    <p class="font-label-md text-label-md">Error</p>
-                    <p class="text-[12px]">${error}</p>
-                </div>
-            </div>
-        </c:if>
 
         <div class="flex justify-between items-end">
             <div>
@@ -391,8 +218,6 @@
             </div>
         </div>
     </div>
-</main>
-
 <script>
     const modal = document.getElementById('productModal');
     const openBtn = document.getElementById('addProductBtn');
@@ -400,6 +225,15 @@
     const cancelBtn = document.getElementById('cancelModal');
     const overlay = document.getElementById('closeOverlay');
     const typeFilter = document.getElementById('productTypeFilter');
+    const headerGlobalSearch = document.getElementById('headerGlobalSearch');
+
+    if (headerGlobalSearch) {
+        headerGlobalSearch.value = '${fn:escapeXml(param.search)}';
+        headerGlobalSearch.addEventListener('change', function() {
+            document.getElementById('productHeaderSearchMirror').value = this.value;
+            document.getElementById('productHeaderSearchForm').submit();
+        });
+    }
 
     function toggleModal(forceOpen) {
         const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : modal.classList.contains('hidden');
@@ -482,5 +316,4 @@
         toggleModal(true);
     </c:if>
 </script>
-</body>
-</html>
+<%@ include file="includes/app-shell-end.jspf" %>

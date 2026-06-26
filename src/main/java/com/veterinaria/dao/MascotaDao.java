@@ -75,6 +75,19 @@ public class MascotaDao {
         return items;
     }
 
+    public boolean belongsToCliente(int idMascota, int idCliente) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM mascota WHERE id_mascota = ? AND id_cliente = ?";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, idMascota);
+            statement.setInt(2, idCliente);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
     public void save(Mascota mascota) throws SQLException {
         String sql = """
                 INSERT INTO mascota (id_cliente, id_especie, nombre, raza, sexo, color, fecha_nacimiento, peso, observaciones, estado)

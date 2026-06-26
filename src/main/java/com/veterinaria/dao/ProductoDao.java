@@ -102,6 +102,25 @@ public class ProductoDao {
         }
     }
 
+    public boolean existsByCodigo(String codigo, Integer excludeId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM producto WHERE codigo = ? AND (? IS NULL OR id_producto <> ?)";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, codigo);
+            if (excludeId == null) {
+                statement.setObject(2, null);
+                statement.setObject(3, null);
+            } else {
+                statement.setInt(2, excludeId);
+                statement.setInt(3, excludeId);
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
     public void save(Producto producto) throws SQLException {
         String sql = """
                 INSERT INTO producto (id_tipo_producto, codigo, nombre, descripcion, stock, stock_minimo, precio_compra, precio_venta, fecha_vencimiento, requiere_receta, estado)

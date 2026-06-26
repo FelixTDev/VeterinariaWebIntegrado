@@ -15,6 +15,15 @@ public abstract class BaseServlet extends HttpServlet {
         return (UserSession) request.getSession().getAttribute("userSession");
     }
 
+    protected void prepareRequest(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            request.setCharacterEncoding("UTF-8");
+        } catch (java.io.UnsupportedEncodingException ignored) {
+        }
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+    }
+
     protected void requireRoles(HttpServletRequest request, String... roles) {
         UserSession user = getUserSession(request);
         if (user == null || Arrays.stream(roles).noneMatch(role -> role.equalsIgnoreCase(user.getRolNombre()))) {

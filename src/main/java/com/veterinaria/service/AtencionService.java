@@ -18,11 +18,24 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class AtencionService {
-    private final AtencionDao atencionDao = new AtencionDao();
-    private final CitaDao citaDao = new CitaDao();
-    private final ProductoDao productoDao = new ProductoDao();
-    private final MovimientoInventarioDao movimientoDao = new MovimientoInventarioDao();
-    private final AuditService auditService = new AuditService();
+    private final AtencionDao atencionDao;
+    private final CitaDao citaDao;
+    private final ProductoDao productoDao;
+    private final MovimientoInventarioDao movimientoDao;
+    private final AuditService auditService;
+
+    public AtencionService() {
+        this(new AtencionDao(), new CitaDao(), new ProductoDao(), new MovimientoInventarioDao(), new AuditService());
+    }
+
+    AtencionService(AtencionDao atencionDao, CitaDao citaDao, ProductoDao productoDao,
+            MovimientoInventarioDao movimientoDao, AuditService auditService) {
+        this.atencionDao = atencionDao;
+        this.citaDao = citaDao;
+        this.productoDao = productoDao;
+        this.movimientoDao = movimientoDao;
+        this.auditService = auditService;
+    }
 
     public List<AtencionClinica> listByMascota(int idMascota) {
         try {
@@ -45,49 +58,93 @@ public class AtencionService {
         ValidationUtil.require(atencion.getIdMascota() > 0, "La atención debe estar asociada a una mascota.");
         ValidationUtil.require(atencion.getIdVeterinario() > 0, "La atención debe tener veterinario.");
         ValidationUtil.notBlank(atencion.getDiagnostico(), "El diagnóstico es obligatorio.");
+
+        Connection connection = null;
         try {
             Cita cita = citaDao.findById(atencion.getIdCita()).orElseThrow(() -> new AppException("La cita no existe."));
-            if (!"ATENDIDA".equalsIgnoreCase(cita.getEstado())) {
-                throw new AppException("Solo una cita atendida puede generar una atención clínica.");
+            ValidationUtil.require(
+                    "PENDIENTE".equalsIgnoreCase(cita.getEstado()) || "CONFIRMADA".equalsIgnoreCase(cita.getEstado()),
+                    "Solo se pueden registrar atenciones para citas pendientes o confirmadas."
+            );
+            ValidationUtil.require(
+                    cita.getIdMascota() == atencion.getIdMascota(),
+                    "La mascota seleccionada no corresponde a la cita elegida."
+            );
+            if (cita.getIdVeterinario() != null) {
+                ValidationUtil.require(
+                        cita.getIdVeterinario() == atencion.getIdVeterinario(),
+                        "La atención debe registrarse con el veterinario asignado a la cita."
+                );
             }
-            try (Connection connection = Database.getConnection()) {
-                connection.setAutoCommit(false);
-                int idAtencion = atencionDao.save(connection, atencion);
-                for (DetalleAtencionProducto detalle : atencion.getDetalles()) {
-                    validarDetalle(detalle);
-                    Producto producto = productoDao.findById(connection, detalle.getIdProducto())
-                            .orElseThrow(() -> new AppException("Producto no encontrado para la atención."));
-                    if (producto.getStock() < detalle.getCantidad()) {
-                        throw new AppException("Stock insuficiente para el producto: " + producto.getNombre());
-                    }
-                    detalle.setPrecioUnitario(producto.getPrecioVenta());
-                    detalle.setSubtotal(producto.getPrecioVenta().multiply(BigDecimal.valueOf(detalle.getCantidad())));
-                    atencionDao.saveDetalle(connection, detalle, idAtencion);
+            ValidationUtil.require(
+                    !atencionDao.existsByCita(atencion.getIdCita()),
+                    "La cita seleccionada ya tiene una atención clínica registrada."
+            );
 
-                    int stockNuevo = producto.getStock() - detalle.getCantidad();
-                    productoDao.updateStock(connection, producto.getIdProducto(), stockNuevo);
-
-                    MovimientoInventario movimiento = new MovimientoInventario();
-                    movimiento.setIdProducto(producto.getIdProducto());
-                    movimiento.setIdUsuario(actorId);
-                    movimiento.setTipoMovimiento("SALIDA");
-                    movimiento.setMotivo("Uso en atención clínica");
-                    movimiento.setCantidad(detalle.getCantidad());
-                    movimiento.setStockAnterior(producto.getStock());
-                    movimiento.setStockNuevo(stockNuevo);
-                    movimiento.setReferencia("ATENCION-" + idAtencion);
-                    movimientoDao.save(connection, movimiento);
+            connection = Database.getConnection();
+            connection.setAutoCommit(false);
+            int idAtencion = atencionDao.save(connection, atencion);
+            for (DetalleAtencionProducto detalle : atencion.getDetalles()) {
+                validarDetalle(detalle);
+                Producto producto = productoDao.findById(connection, detalle.getIdProducto())
+                        .orElseThrow(() -> new AppException("Producto no encontrado para la atención."));
+                if (producto.getStock() < detalle.getCantidad()) {
+                    throw new AppException("Stock insuficiente para el producto: " + producto.getNombre());
                 }
-                auditService.log(connection, actorId, "ATENCION", "CREAR", "Atención clínica registrada #" + idAtencion);
-                connection.commit();
+                detalle.setPrecioUnitario(producto.getPrecioVenta());
+                detalle.setSubtotal(producto.getPrecioVenta().multiply(BigDecimal.valueOf(detalle.getCantidad())));
+                atencionDao.saveDetalle(connection, detalle, idAtencion);
+
+                int stockNuevo = producto.getStock() - detalle.getCantidad();
+                productoDao.updateStock(connection, producto.getIdProducto(), stockNuevo);
+
+                MovimientoInventario movimiento = new MovimientoInventario();
+                movimiento.setIdProducto(producto.getIdProducto());
+                movimiento.setIdUsuario(actorId);
+                movimiento.setTipoMovimiento("SALIDA");
+                movimiento.setMotivo("Uso en atención clínica");
+                movimiento.setCantidad(detalle.getCantidad());
+                movimiento.setStockAnterior(producto.getStock());
+                movimiento.setStockNuevo(stockNuevo);
+                movimiento.setReferencia("ATENCION-" + idAtencion);
+                movimientoDao.save(connection, movimiento);
             }
-        } catch (SQLException ex) {
+            citaDao.updateEstado(connection, atencion.getIdCita(), "ATENDIDA");
+            auditService.log(connection, actorId, "ATENCION", "CREAR", "Atención clínica registrada #" + idAtencion);
+            connection.commit();
+        } catch (Exception ex) {
+            rollbackQuietly(connection);
+            if (ex instanceof AppException appException) {
+                throw appException;
+            }
             throw new AppException("No fue posible registrar la atención clínica.", ex);
+        } finally {
+            closeQuietly(connection);
         }
     }
 
     private void validarDetalle(DetalleAtencionProducto detalle) {
         ValidationUtil.require(detalle.getIdProducto() > 0, "Producto inválido en atención clínica.");
         ValidationUtil.require(detalle.getCantidad() > 0, "La cantidad del producto debe ser mayor a cero.");
+    }
+
+    private void rollbackQuietly(Connection connection) {
+        if (connection == null) {
+            return;
+        }
+        try {
+            connection.rollback();
+        } catch (SQLException ignored) {
+        }
+    }
+
+    private void closeQuietly(Connection connection) {
+        if (connection == null) {
+            return;
+        }
+        try {
+            connection.close();
+        } catch (SQLException ignored) {
+        }
     }
 }

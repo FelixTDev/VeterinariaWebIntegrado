@@ -1,9 +1,13 @@
 package com.veterinaria.service;
 
+import com.veterinaria.dao.AtencionDao;
+import com.veterinaria.dao.ClienteDao;
 import com.veterinaria.dao.ComprobanteDao;
+import com.veterinaria.dao.MascotaDao;
 import com.veterinaria.dao.MovimientoInventarioDao;
 import com.veterinaria.dao.ProductoDao;
 import com.veterinaria.exception.AppException;
+import com.veterinaria.model.AtencionClinica;
 import com.veterinaria.model.Comprobante;
 import com.veterinaria.model.DetalleComprobante;
 import com.veterinaria.model.MovimientoInventario;
@@ -19,10 +23,29 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ComprobanteService {
-    private final ComprobanteDao comprobanteDao = new ComprobanteDao();
-    private final ProductoDao productoDao = new ProductoDao();
-    private final MovimientoInventarioDao movimientoDao = new MovimientoInventarioDao();
-    private final AuditService auditService = new AuditService();
+    private final ComprobanteDao comprobanteDao;
+    private final ProductoDao productoDao;
+    private final MovimientoInventarioDao movimientoDao;
+    private final ClienteDao clienteDao;
+    private final MascotaDao mascotaDao;
+    private final AtencionDao atencionDao;
+    private final AuditService auditService;
+
+    public ComprobanteService() {
+        this(new ComprobanteDao(), new ProductoDao(), new MovimientoInventarioDao(),
+                new ClienteDao(), new MascotaDao(), new AtencionDao(), new AuditService());
+    }
+
+    ComprobanteService(ComprobanteDao comprobanteDao, ProductoDao productoDao, MovimientoInventarioDao movimientoDao,
+            ClienteDao clienteDao, MascotaDao mascotaDao, AtencionDao atencionDao, AuditService auditService) {
+        this.comprobanteDao = comprobanteDao;
+        this.productoDao = productoDao;
+        this.movimientoDao = movimientoDao;
+        this.clienteDao = clienteDao;
+        this.mascotaDao = mascotaDao;
+        this.atencionDao = atencionDao;
+        this.auditService = auditService;
+    }
 
     public List<Comprobante> list(String fecha, String estado, String search) {
         try {
@@ -43,7 +66,6 @@ public class ComprobanteService {
     public void emitir(Comprobante comprobante, int actorId) {
         ValidationUtil.require(comprobante.getIdCliente() > 0, "El comprobante debe tener cliente.");
         ValidationUtil.notEmpty(comprobante.getDetalles(), "El comprobante debe tener al menos un detalle.");
-        recalcular(comprobante);
         comprobante.setIdUsuario(actorId);
         if (comprobante.getNumeroComprobante() == null || comprobante.getNumeroComprobante().isBlank()) {
             comprobante.setNumeroComprobante("CMP-" + DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
@@ -51,20 +73,26 @@ public class ComprobanteService {
         if (comprobante.getEstado() == null || comprobante.getEstado().isBlank()) {
             comprobante.setEstado("EMITIDO");
         }
-        try (Connection connection = Database.getConnection()) {
+
+        Connection connection = null;
+        try {
+            validarCabecera(comprobante);
+            connection = Database.getConnection();
             connection.setAutoCommit(false);
+            recalcular(comprobante, connection);
+            ValidationUtil.require(
+                    comprobante.getTotal() != null && comprobante.getTotal().compareTo(BigDecimal.ZERO) > 0,
+                    "El comprobante debe tener un total mayor a cero."
+            );
+
             int idComprobante = comprobanteDao.save(connection, comprobante);
             for (DetalleComprobante detalle : comprobante.getDetalles()) {
-                validarDetalle(detalle);
                 if ("PRODUCTO".equalsIgnoreCase(detalle.getTipoItem())) {
                     Producto producto = productoDao.findById(connection, detalle.getIdProducto())
                             .orElseThrow(() -> new AppException("Producto no encontrado para comprobante."));
                     if (producto.getStock() < detalle.getCantidad()) {
                         throw new AppException("Stock insuficiente para el producto: " + producto.getNombre());
                     }
-                    detalle.setDescripcion(producto.getNombre());
-                    detalle.setPrecioUnitario(producto.getPrecioVenta());
-                    detalle.setSubtotal(producto.getPrecioVenta().multiply(BigDecimal.valueOf(detalle.getCantidad())));
                     int stockNuevo = producto.getStock() - detalle.getCantidad();
                     productoDao.updateStock(connection, producto.getIdProducto(), stockNuevo);
 
@@ -78,22 +106,26 @@ public class ComprobanteService {
                     movimiento.setStockNuevo(stockNuevo);
                     movimiento.setReferencia("CMP-" + idComprobante);
                     movimientoDao.save(connection, movimiento);
-                } else {
-                    ValidationUtil.notBlank(detalle.getDescripcion(), "La descripción del servicio es obligatoria.");
-                    ValidationUtil.nonNegative(detalle.getPrecioUnitario(), "El precio del servicio no puede ser negativo.");
-                    detalle.setSubtotal(detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(detalle.getCantidad())));
                 }
                 comprobanteDao.saveDetalle(connection, idComprobante, detalle);
             }
             auditService.log(connection, actorId, "COMPROBANTE", "EMITIR", "Comprobante emitido #" + idComprobante);
             connection.commit();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
+            rollbackQuietly(connection);
+            if (ex instanceof AppException appException) {
+                throw appException;
+            }
             throw new AppException("No fue posible emitir el comprobante.", ex);
+        } finally {
+            closeQuietly(connection);
         }
     }
 
     public void anular(int idComprobante, int actorId) {
-        try (Connection connection = Database.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = Database.getConnection();
             connection.setAutoCommit(false);
             Comprobante comprobante = comprobanteDao.findById(idComprobante)
                     .orElseThrow(() -> new AppException("Comprobante no encontrado."));
@@ -122,21 +154,57 @@ public class ComprobanteService {
             comprobanteDao.updateEstado(connection, idComprobante, "ANULADO");
             auditService.log(connection, actorId, "COMPROBANTE", "ANULAR", "Comprobante anulado #" + idComprobante);
             connection.commit();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
+            rollbackQuietly(connection);
+            if (ex instanceof AppException appException) {
+                throw appException;
+            }
             throw new AppException("No fue posible anular el comprobante.", ex);
+        } finally {
+            closeQuietly(connection);
         }
     }
 
-    private void recalcular(Comprobante comprobante) {
+    void validarCabecera(Comprobante comprobante) {
+        try {
+            clienteDao.findById(comprobante.getIdCliente())
+                    .orElseThrow(() -> new AppException("Cliente no encontrado para el comprobante."));
+            if (comprobante.getIdMascota() != null) {
+                mascotaDao.findById(comprobante.getIdMascota())
+                        .orElseThrow(() -> new AppException("Mascota no encontrada para el comprobante."));
+                ValidationUtil.require(
+                        mascotaDao.belongsToCliente(comprobante.getIdMascota(), comprobante.getIdCliente()),
+                        "La mascota seleccionada no pertenece al cliente del comprobante."
+                );
+            }
+            if (comprobante.getIdAtencion() != null) {
+                AtencionClinica atencion = atencionDao.findById(comprobante.getIdAtencion())
+                        .orElseThrow(() -> new AppException("La atención asociada no existe."));
+                ValidationUtil.require(
+                        comprobante.getIdMascota() != null && atencion.getIdMascota() == comprobante.getIdMascota(),
+                        "La mascota del comprobante no coincide con la atención asociada."
+                );
+            }
+        } catch (SQLException ex) {
+            throw new AppException("No fue posible validar el comprobante.", ex);
+        }
+    }
+
+    void recalcular(Comprobante comprobante, Connection connection) throws SQLException {
         BigDecimal subtotal = BigDecimal.ZERO;
         for (DetalleComprobante detalle : comprobante.getDetalles()) {
-            ValidationUtil.require(detalle.getCantidad() > 0, "La cantidad de cada detalle debe ser mayor a cero.");
-            if (detalle.getPrecioUnitario() != null) {
-                detalle.setSubtotal(detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(detalle.getCantidad())));
+            validarDetalle(detalle);
+            if ("PRODUCTO".equalsIgnoreCase(detalle.getTipoItem())) {
+                Producto producto = productoDao.findById(connection, detalle.getIdProducto())
+                        .orElseThrow(() -> new AppException("Producto no encontrado para comprobante."));
+                detalle.setDescripcion(producto.getNombre());
+                detalle.setPrecioUnitario(producto.getPrecioVenta());
+            } else {
+                ValidationUtil.notBlank(detalle.getDescripcion(), "La descripción del servicio es obligatoria.");
+                ValidationUtil.nonNegative(detalle.getPrecioUnitario(), "El precio del servicio no puede ser negativo.");
             }
-            if (detalle.getSubtotal() != null) {
-                subtotal = subtotal.add(detalle.getSubtotal());
-            }
+            detalle.setSubtotal(detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(detalle.getCantidad())));
+            subtotal = subtotal.add(detalle.getSubtotal());
         }
         BigDecimal impuesto = subtotal.multiply(BigDecimal.valueOf(0.18)).setScale(2, RoundingMode.HALF_UP);
         comprobante.setSubtotal(subtotal.setScale(2, RoundingMode.HALF_UP));
@@ -149,6 +217,28 @@ public class ComprobanteService {
         ValidationUtil.require(detalle.getCantidad() > 0, "La cantidad del detalle debe ser mayor a cero.");
         if ("PRODUCTO".equalsIgnoreCase(detalle.getTipoItem())) {
             ValidationUtil.notNull(detalle.getIdProducto(), "El detalle de producto requiere un producto.");
+            return;
+        }
+        ValidationUtil.require("SERVICIO".equalsIgnoreCase(detalle.getTipoItem()), "El tipo de detalle no es válido.");
+    }
+
+    private void rollbackQuietly(Connection connection) {
+        if (connection == null) {
+            return;
+        }
+        try {
+            connection.rollback();
+        } catch (SQLException ignored) {
+        }
+    }
+
+    private void closeQuietly(Connection connection) {
+        if (connection == null) {
+            return;
+        }
+        try {
+            connection.close();
+        } catch (SQLException ignored) {
         }
     }
 }

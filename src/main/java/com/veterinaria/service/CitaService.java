@@ -14,17 +14,37 @@ import java.util.Set;
 public class CitaService {
     private static final Set<String> ESTADOS_VALIDOS = Set.of("PENDIENTE", "CONFIRMADA", "ATENDIDA", "CANCELADA", "NO_ASISTIO");
 
-    private final CitaDao citaDao = new CitaDao();
-    private final ClienteDao clienteDao = new ClienteDao();
-    private final MascotaDao mascotaDao = new MascotaDao();
-    private final UserDao userDao = new UserDao();
-    private final AuditService auditService = new AuditService();
+    private final CitaDao citaDao;
+    private final ClienteDao clienteDao;
+    private final MascotaDao mascotaDao;
+    private final UserDao userDao;
+    private final AuditService auditService;
+
+    public CitaService() {
+        this(new CitaDao(), new ClienteDao(), new MascotaDao(), new UserDao(), new AuditService());
+    }
+
+    CitaService(CitaDao citaDao, ClienteDao clienteDao, MascotaDao mascotaDao, UserDao userDao, AuditService auditService) {
+        this.citaDao = citaDao;
+        this.clienteDao = clienteDao;
+        this.mascotaDao = mascotaDao;
+        this.userDao = userDao;
+        this.auditService = auditService;
+    }
 
     public List<Cita> list(String fecha, String estado, String search) {
         try {
             return citaDao.list(fecha, estado, search);
         } catch (SQLException ex) {
             throw new AppException("No fue posible listar citas.", ex);
+        }
+    }
+
+    public List<Cita> listDisponiblesParaAtencion() {
+        try {
+            return citaDao.listDisponiblesParaAtencion();
+        } catch (SQLException ex) {
+            throw new AppException("No fue posible listar citas disponibles para atención.", ex);
         }
     }
 
@@ -75,6 +95,10 @@ public class CitaService {
         try {
             clienteDao.findById(cita.getIdCliente()).orElseThrow(() -> new AppException("Cliente no encontrado."));
             mascotaDao.findById(cita.getIdMascota()).orElseThrow(() -> new AppException("Mascota no encontrada."));
+            ValidationUtil.require(
+                    mascotaDao.belongsToCliente(cita.getIdMascota(), cita.getIdCliente()),
+                    "La mascota seleccionada no pertenece al cliente indicado."
+            );
             if (cita.getIdVeterinario() != null && cita.getIdVeterinario() > 0) {
                 userDao.findById(cita.getIdVeterinario())
                         .filter(usuario -> "VETERINARIO".equalsIgnoreCase(usuario.getRolNombre()))

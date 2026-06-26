@@ -9,9 +9,19 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class ProductoService {
-    private final ProductoDao productoDao = new ProductoDao();
-    private final TipoProductoDao tipoProductoDao = new TipoProductoDao();
-    private final AuditService auditService = new AuditService();
+    private final ProductoDao productoDao;
+    private final TipoProductoDao tipoProductoDao;
+    private final AuditService auditService;
+
+    public ProductoService() {
+        this(new ProductoDao(), new TipoProductoDao(), new AuditService());
+    }
+
+    ProductoService(ProductoDao productoDao, TipoProductoDao tipoProductoDao, AuditService auditService) {
+        this.productoDao = productoDao;
+        this.tipoProductoDao = tipoProductoDao;
+        this.auditService = auditService;
+    }
 
     public List<Producto> list(String search) {
         try {
@@ -74,11 +84,14 @@ public class ProductoService {
         ValidationUtil.nonNegative(producto.getPrecioCompra(), "El precio de compra no puede ser negativo.");
         ValidationUtil.nonNegative(producto.getPrecioVenta(), "El precio de venta no puede ser negativo.");
         try {
+            if (productoDao.existsByCodigo(producto.getCodigo(), producto.getIdProducto() > 0 ? producto.getIdProducto() : null)) {
+                throw new AppException("Ya existe un producto con ese código.");
+            }
             tipoProductoDao.findById(producto.getIdTipoProducto())
                     .filter(tipo -> "ACTIVO".equalsIgnoreCase(tipo.getEstado()))
                     .orElseThrow(() -> new AppException("El tipo de producto seleccionado no está activo."));
         } catch (SQLException ex) {
-            throw new AppException("No fue posible validar el tipo de producto.", ex);
+            throw new AppException("No fue posible validar el producto.", ex);
         }
         if (producto.getEstado() == null || producto.getEstado().isBlank()) {
             producto.setEstado("ACTIVO");

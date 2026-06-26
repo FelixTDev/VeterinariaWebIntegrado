@@ -27,6 +27,10 @@ public class AuditService {
         auditoria.setModulo(modulo);
         auditoria.setAccion(accion);
         auditoria.setDescripcion(descripcion);
-        auditoriaDao.save(connection, auditoria);
+        try {
+            auditoriaDao.save(connection, auditoria);
+        } catch (SQLException ignored) {
+            // La auditoría no debe bloquear operaciones clínicas o comerciales.
+        }
     }
 }

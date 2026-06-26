@@ -7,13 +7,24 @@ import com.veterinaria.exception.AppException;
 import com.veterinaria.model.MovimientoInventario;
 import com.veterinaria.model.Producto;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 public class ReporteService {
-    private final ReporteDao reporteDao = new ReporteDao();
-    private final ProductoDao productoDao = new ProductoDao();
-    private final MovimientoInventarioDao movimientoDao = new MovimientoInventarioDao();
+    private final ReporteDao reporteDao;
+    private final ProductoDao productoDao;
+    private final MovimientoInventarioDao movimientoDao;
+
+    public ReporteService() {
+        this(new ReporteDao(), new ProductoDao(), new MovimientoInventarioDao());
+    }
+
+    ReporteService(ReporteDao reporteDao, ProductoDao productoDao, MovimientoInventarioDao movimientoDao) {
+        this.reporteDao = reporteDao;
+        this.productoDao = productoDao;
+        this.movimientoDao = movimientoDao;
+    }
 
     public Map<String, Object> dashboard() {
         try {
@@ -24,6 +35,7 @@ public class ReporteService {
     }
 
     public List<Map<String, Object>> citasPorRango(String desde, String hasta) {
+        validateRange(LocalDate.parse(desde), LocalDate.parse(hasta));
         try {
             return reporteDao.citasPorRango(desde, hasta);
         } catch (SQLException ex) {
@@ -32,6 +44,7 @@ public class ReporteService {
     }
 
     public List<Map<String, Object>> ingresosPorRango(String desde, String hasta) {
+        validateRange(LocalDate.parse(desde), LocalDate.parse(hasta));
         try {
             return reporteDao.ingresosPorRango(desde, hasta);
         } catch (SQLException ex) {
@@ -60,6 +73,15 @@ public class ReporteService {
             return movimientoDao.listRecent();
         } catch (SQLException ex) {
             throw new AppException("No fue posible listar movimientos recientes.", ex);
+        }
+    }
+
+    void validateRange(LocalDate desde, LocalDate hasta) {
+        if (desde == null || hasta == null) {
+            throw new AppException("Debes indicar un rango de fechas válido.");
+        }
+        if (desde.isAfter(hasta)) {
+            throw new AppException("La fecha desde no puede ser mayor que la fecha hasta.");
         }
     }
 }

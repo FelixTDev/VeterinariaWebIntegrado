@@ -1,5 +1,6 @@
 package com.veterinaria.controller;
 
+import com.veterinaria.exception.AppException;
 import com.veterinaria.model.Comprobante;
 import com.veterinaria.model.DetalleComprobante;
 import com.veterinaria.service.ClienteService;
@@ -25,9 +26,10 @@ public class ComprobanteServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        prepareRequest(request, response);
         try {
             if ("view".equalsIgnoreCase(request.getParameter("action"))) {
-                request.setAttribute("comprobante", comprobanteService.get(WebUtil.getInt(request, "id", 0)));
+                request.setAttribute("comprobante", comprobanteService.get(parseRequiredInt(request, "id", "El comprobante solicitado no es válido.")));
             }
             request.setAttribute("comprobantes", comprobanteService.list(request.getParameter("fecha"), request.getParameter("estado"), request.getParameter("search")));
             loadCatalogs(request);
@@ -39,11 +41,12 @@ public class ComprobanteServlet extends BaseServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        prepareRequest(request, response);
         try {
             requireRoles(request, "ADMINISTRADOR", "RECEPCIONISTA");
             String action = request.getParameter("formAction");
             if ("anular".equalsIgnoreCase(action)) {
-                comprobanteService.anular(WebUtil.getInt(request, "idComprobante", 0), getUserSession(request).getIdUsuario());
+                comprobanteService.anular(parseRequiredInt(request, "idComprobante", "El comprobante a anular no es válido."), getUserSession(request).getIdUsuario());
                 request.getSession().setAttribute("flash", "Comprobante anulado correctamente.");
             } else {
                 Comprobante comprobante = buildComprobante(request);
@@ -53,7 +56,7 @@ public class ComprobanteServlet extends BaseServlet {
             WebUtil.redirect(request, response, "/app/comprobantes");
         } catch (Exception ex) {
             request.setAttribute("error", ex.getMessage());
-            request.setAttribute("comprobante", buildComprobante(request));
+            request.setAttribute("comprobante", safeBuildComprobante(request));
             request.setAttribute("comprobantes", comprobanteService.list(request.getParameter("fecha"), request.getParameter("estado"), request.getParameter("search")));
             loadCatalogs(request);
             WebUtil.forward(request, response, "comprobantes.jsp");
@@ -68,16 +71,26 @@ public class ComprobanteServlet extends BaseServlet {
 
     private Comprobante buildComprobante(HttpServletRequest request) {
         Comprobante comprobante = new Comprobante();
-        comprobante.setIdComprobante(WebUtil.getInt(request, "idComprobante", 0));
-        comprobante.setIdCliente(WebUtil.getInt(request, "idCliente", 0));
-        int idMascota = WebUtil.getInt(request, "idMascota", 0);
+        comprobante.setIdComprobante(parseOptionalInt(request, "idComprobante", 0, "El identificador del comprobante no es válido."));
+        comprobante.setIdCliente(parseRequiredInt(request, "idCliente", "Selecciona un cliente válido."));
+        int idMascota = parseOptionalInt(request, "idMascota", 0, "Selecciona una mascota válida.");
         comprobante.setIdMascota(idMascota > 0 ? idMascota : null);
+        int idAtencion = parseOptionalInt(request, "idAtencion", 0, "La atención asociada no es válida.");
+        comprobante.setIdAtencion(idAtencion > 0 ? idAtencion : null);
         comprobante.setTipoComprobante(request.getParameter("tipoComprobante"));
         comprobante.setMetodoPago(request.getParameter("metodoPago"));
         comprobante.setObservaciones(request.getParameter("observaciones"));
         comprobante.setEstado("EMITIDO");
         comprobante.setDetalles(buildDetalles(request));
         return comprobante;
+    }
+
+    private Comprobante safeBuildComprobante(HttpServletRequest request) {
+        try {
+            return buildComprobante(request);
+        } catch (AppException ex) {
+            return new Comprobante();
+        }
     }
 
     private List<DetalleComprobante> buildDetalles(HttpServletRequest request) {
@@ -90,22 +103,71 @@ public class ComprobanteServlet extends BaseServlet {
         if (tipos == null) {
             return detalles;
         }
+        if (!sameLength(tipos.length, cantidades) || productos == null || descripciones == null || precios == null
+                || productos.length != tipos.length || descripciones.length != tipos.length || precios.length != tipos.length) {
+            throw new AppException("Los detalles del comprobante llegaron incompletos. Vuelve a intentarlo.");
+        }
         for (int i = 0; i < tipos.length; i++) {
-            if (tipos[i] == null || tipos[i].isBlank()) {
+            boolean emptyRow = isBlank(tipos[i]) && isBlank(productos[i]) && isBlank(descripciones[i]) && isBlank(cantidades[i]) && isBlank(precios[i]);
+            if (emptyRow) {
                 continue;
+            }
+            if (isBlank(tipos[i]) || isBlank(cantidades[i])) {
+                throw new AppException("Cada detalle del comprobante debe indicar tipo y cantidad.");
             }
             DetalleComprobante detalle = new DetalleComprobante();
             detalle.setTipoItem(tipos[i]);
-            if (productos != null && productos.length > i && productos[i] != null && !productos[i].isBlank()) {
-                detalle.setIdProducto(Integer.parseInt(productos[i]));
+            if (!isBlank(productos[i])) {
+                detalle.setIdProducto(parseInt(productos[i], "Uno de los productos seleccionados no es válido."));
             }
-            detalle.setDescripcion(descripciones != null && descripciones.length > i ? descripciones[i] : null);
-            detalle.setCantidad(Integer.parseInt(cantidades[i]));
-            if (precios != null && precios.length > i && precios[i] != null && !precios[i].isBlank()) {
-                detalle.setPrecioUnitario(new BigDecimal(precios[i]));
+            detalle.setDescripcion(descripciones[i]);
+            detalle.setCantidad(parseInt(cantidades[i], "La cantidad de uno de los detalles no es válida."));
+            if (!isBlank(precios[i])) {
+                detalle.setPrecioUnitario(parseDecimal(precios[i], "El precio de uno de los detalles no es válido."));
             }
             detalles.add(detalle);
         }
         return detalles;
+    }
+
+    private boolean sameLength(int expected, String[]... arrays) {
+        for (String[] array : arrays) {
+            if (array == null || array.length != expected) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private int parseRequiredInt(HttpServletRequest request, String parameter, String message) {
+        return parseInt(request.getParameter(parameter), message);
+    }
+
+    private int parseOptionalInt(HttpServletRequest request, String parameter, int defaultValue, String message) {
+        String value = request.getParameter(parameter);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return parseInt(value, message);
+    }
+
+    private int parseInt(String value, String message) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception ex) {
+            throw new AppException(message);
+        }
+    }
+
+    private BigDecimal parseDecimal(String value, String message) {
+        try {
+            return new BigDecimal(value);
+        } catch (Exception ex) {
+            throw new AppException(message);
+        }
     }
 }

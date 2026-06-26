@@ -100,6 +100,18 @@ public class AtencionDao {
         }
     }
 
+    public boolean existsByCita(int idCita) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM atencion_clinica WHERE id_cita = ? AND estado <> 'ANULADA'";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, idCita);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
     private List<DetalleAtencionProducto> listDetalles(Connection connection, int idAtencion) throws SQLException {
         String sql = """
                 SELECT d.*, p.nombre AS producto_nombre

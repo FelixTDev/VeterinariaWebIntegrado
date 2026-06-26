@@ -8,8 +8,17 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class ClienteService {
-    private final ClienteDao clienteDao = new ClienteDao();
-    private final AuditService auditService = new AuditService();
+    private final ClienteDao clienteDao;
+    private final AuditService auditService;
+
+    public ClienteService() {
+        this(new ClienteDao(), new AuditService());
+    }
+
+    ClienteService(ClienteDao clienteDao, AuditService auditService) {
+        this.clienteDao = clienteDao;
+        this.auditService = auditService;
+    }
 
     public List<Cliente> list(String search) {
         try {
@@ -48,13 +57,7 @@ public class ClienteService {
     public void update(Cliente cliente, int actorId) {
         validate(cliente, cliente.getIdCliente());
         try {
-            if ("ACTIVO".equalsIgnoreCase(cliente.getEstado()) && clienteDao.countRelatedRecords(cliente.getIdCliente()) > 0) {
-                clienteDao.update(cliente);
-            } else if ("INACTIVO".equalsIgnoreCase(cliente.getEstado())) {
-                clienteDao.update(cliente);
-            } else {
-                clienteDao.update(cliente);
-            }
+            clienteDao.update(cliente);
             auditService.log(actorId, "CLIENTE", "ACTUALIZAR", "Cliente actualizado: " + cliente.getDni());
         } catch (SQLException ex) {
             throw new AppException("No fue posible actualizar el cliente.", ex);
@@ -74,8 +77,11 @@ public class ClienteService {
             if (clienteDao.existsByDni(cliente.getDni(), excludeId)) {
                 throw new AppException("Ya existe un cliente con ese DNI.");
             }
+            if (clienteDao.existsByCorreo(cliente.getCorreo(), excludeId)) {
+                throw new AppException("Ya existe un cliente con ese correo.");
+            }
         } catch (SQLException ex) {
-            throw new AppException("No fue posible validar el DNI del cliente.", ex);
+            throw new AppException("No fue posible validar los datos del cliente.", ex);
         }
     }
 }

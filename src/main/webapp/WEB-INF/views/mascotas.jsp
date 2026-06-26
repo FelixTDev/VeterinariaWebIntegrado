@@ -1,189 +1,13 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<!DOCTYPE html>
-<html class="light" lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VetWeb Integrado - Gestion de Mascotas</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
-        }
-        .active-tab {
-            font-variation-settings: 'FILL' 1;
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
-    </style>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "surface-bright": "#f8f9fa",
-                        "on-secondary-fixed-variant": "#005236",
-                        "on-tertiary-container": "#453f20",
-                        "on-error-container": "#93000a",
-                        "inverse-surface": "#2e3132",
-                        "secondary-fixed-dim": "#4edea3",
-                        "surface-variant": "#e1e3e4",
-                        "on-primary-container": "#90a8ff",
-                        "secondary-container": "#6cf8bb",
-                        "on-primary": "#ffffff",
-                        "surface-container-high": "#e7e8e9",
-                        "primary-fixed": "#dce1ff",
-                        "inverse-on-surface": "#f0f1f2",
-                        "on-background": "#191c1d",
-                        "on-secondary-fixed": "#002113",
-                        "surface-container": "#edeeef",
-                        "on-tertiary-fixed-variant": "#4d4727",
-                        "tertiary-fixed": "#ede3b8",
-                        "surface-container-highest": "#e1e3e4",
-                        "primary-fixed-dim": "#b6c4ff",
-                        "tertiary": "#665f3d",
-                        "on-secondary": "#ffffff",
-                        "on-secondary-container": "#00714d",
-                        "on-surface-variant": "#444651",
-                        "tertiary-container": "#b4ab84",
-                        "primary-container": "#1e3a8a",
-                        "surface-container-low": "#f3f4f5",
-                        "on-error": "#ffffff",
-                        "on-primary-fixed-variant": "#264191",
-                        "on-primary-fixed": "#00164e",
-                        "secondary": "#006c49",
-                        "surface": "#f8f9fa",
-                        "surface-tint": "#4059aa",
-                        "outline-variant": "#c5c5d3",
-                        "background": "#f8f9fa",
-                        "inverse-primary": "#b6c4ff",
-                        "error-container": "#ffdad6",
-                        "surface-container-lowest": "#ffffff",
-                        "primary": "#00236f",
-                        "tertiary-fixed-dim": "#d1c79d",
-                        "secondary-fixed": "#6ffbbe",
-                        "error": "#ba1a1a",
-                        "on-surface": "#191c1d",
-                        "outline": "#757682",
-                        "surface-dim": "#d9dadb",
-                        "on-tertiary-fixed": "#201c02",
-                        "on-tertiary": "#ffffff"
-                    },
-                    borderRadius: {
-                        DEFAULT: "0.25rem",
-                        lg: "0.5rem",
-                        xl: "0.75rem",
-                        full: "9999px"
-                    },
-                    spacing: {
-                        xl: "2rem",
-                        lg: "1.5rem",
-                        md: "1rem",
-                        margin_mobile: "16px",
-                        sm: "0.5rem",
-                        gutter: "24px",
-                        xs: "0.25rem",
-                        base: "4px",
-                        sidebar_width: "280px"
-                    },
-                    fontFamily: {
-                        "label-md": ["Inter"],
-                        "body-md": ["Inter"],
-                        "headline-lg": ["Inter"],
-                        "headline-lg-mobile": ["Inter"],
-                        "headline-md": ["Inter"],
-                        "display-lg": ["Inter"],
-                        "body-lg": ["Inter"]
-                    },
-                    fontSize: {
-                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                        "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
-                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-surface text-on-surface font-body-md overflow-hidden">
-<c:set var="userInitial" value="${fn:toUpperCase(fn:substring(sessionScope.userSession.username, 0, 1))}"/>
-<aside class="fixed left-0 top-0 h-screen w-[280px] bg-[#111827] flex flex-col py-lg z-50">
-    <div class="px-lg mb-xl">
-        <h1 class="text-headline-md font-headline-md text-surface-container-lowest">VetWeb Integrado</h1>
-        <p class="text-label-md font-label-md text-surface-variant/60">Veterinary Clinic Management</p>
-    </div>
-    <nav class="flex-1 space-y-base px-sm overflow-y-auto">
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="font-label-md text-label-md">Dashboard</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/clientes"><span class="material-symbols-outlined">group</span><span class="font-label-md text-label-md">Clientes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary-fixed font-bold border-r-4 border-secondary-fixed bg-on-primary-fixed-variant/10" href="${pageContext.request.contextPath}/app/mascotas"><span class="material-symbols-outlined active-tab">pets</span><span class="font-label-md text-label-md">Mascotas</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/productos"><span class="material-symbols-outlined">inventory_2</span><span class="font-label-md text-label-md">Productos</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/catalogos"><span class="material-symbols-outlined">category</span><span class="font-label-md text-label-md">Catalogos</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/citas"><span class="material-symbols-outlined">calendar_today</span><span class="font-label-md text-label-md">Citas</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/atenciones"><span class="material-symbols-outlined">medical_services</span><span class="font-label-md text-label-md">Atenciones</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/comprobantes"><span class="material-symbols-outlined">receipt_long</span><span class="font-label-md text-label-md">Comprobantes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/app/reportes"><span class="material-symbols-outlined">bar_chart</span><span class="font-label-md text-label-md">Reportes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all duration-150 ease-in-out" href="${pageContext.request.contextPath}/logout"><span class="material-symbols-outlined">logout</span><span class="font-label-md text-label-md">Cerrar sesion</span></a>
-    </nav>
-    <div class="px-lg mt-auto pt-lg border-t border-surface-variant/10">
-        <div class="flex items-center gap-md">
-            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">${userInitial}</div>
-            <div>
-                <p class="text-label-md font-bold text-surface-bright">${sessionScope.userSession.nombreCompleto}</p>
-                <p class="text-[10px] text-surface-variant/50">${sessionScope.userSession.rolNombre}</p>
-            </div>
-        </div>
-    </div>
-</aside>
+<c:set var="pageTitle" value="Mascotas"/>
+<c:set var="headerSearchPlaceholder" value="Buscar mascota o cliente..."/>
+<%@ include file="includes/app-shell.jspf" %>
 
-<main class="ml-[280px] w-[calc(100%-280px)] h-screen flex flex-col overflow-hidden">
-    <header class="sticky top-0 z-40 bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-lg">
-        <form method="get" class="flex items-center gap-lg">
-            <div class="relative w-96">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-                <input class="w-full bg-surface-container-low border-none rounded-xl pl-10 text-body-md focus:ring-2 focus:ring-primary/20 transition-all" name="search" value="${param.search}" placeholder="Buscar mascota o cliente..." type="text">
-            </div>
-        </form>
-        <div class="flex items-center gap-md">
-            <button class="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-opacity duration-200 w-auto" type="button"><span class="material-symbols-outlined">notifications</span></button>
-            <button class="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-opacity duration-200 w-auto" type="button"><span class="material-symbols-outlined">settings</span></button>
-            <div class="h-8 w-[1px] bg-outline-variant mx-2"></div>
-            <button class="bg-primary text-on-primary px-lg py-2 rounded-xl flex items-center gap-2 font-label-md hover:opacity-90 transition-all w-auto" type="button" onclick="openCreateModal()"><span class="material-symbols-outlined">add</span>Nueva Mascota</button>
-        </div>
-    </header>
-
-    <div class="flex-1 p-lg overflow-y-auto bg-surface-container-lowest">
-        <c:if test="${not empty sessionScope.flash}">
-            <div class="mb-lg flex items-start gap-sm p-md bg-secondary-container text-on-secondary-container rounded-lg border border-secondary/20">
-                <span class="material-symbols-outlined">check_circle</span>
-                <div class="flex-1">
-                    <p class="font-label-md text-label-md">Operacion exitosa</p>
-                    <p class="text-[12px]">${sessionScope.flash}</p>
-                </div>
-            </div>
-            <% session.removeAttribute("flash"); %>
-        </c:if>
-        <c:if test="${not empty error}">
-            <div class="mb-lg flex items-start gap-sm p-md bg-error-container text-on-error-container rounded-lg border border-error/20">
-                <span class="material-symbols-outlined text-error">error</span>
-                <div class="flex-1">
-                    <p class="font-label-md text-label-md">Error</p>
-                    <p class="text-[12px]">${error}</p>
-                </div>
-            </div>
-        </c:if>
+    <div class="flex justify-end -mt-sm mb-md">
+        <button class="bg-primary text-on-primary px-lg py-2 rounded-xl flex items-center gap-2 font-label-md hover:opacity-90 transition-all w-auto" type="button" onclick="openCreateModal()"><span class="material-symbols-outlined">add</span>Nueva Mascota</button>
+    </div>
 
         <div class="grid grid-cols-12 gap-lg h-full">
             <div class="col-span-8 flex flex-col gap-lg">
@@ -305,8 +129,6 @@
             </aside>
         </div>
     </div>
-</main>
-
 <div class="fixed inset-0 bg-inverse-surface/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-md" id="register-modal">
     <div class="bg-surface w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col">
         <div class="p-lg border-b border-outline-variant flex justify-between items-center bg-surface-bright">
@@ -486,5 +308,4 @@
         </c:if>
     }());
 </script>
-</body>
-</html>
+<%@ include file="includes/app-shell-end.jspf" %>

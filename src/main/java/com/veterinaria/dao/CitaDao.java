@@ -74,7 +74,7 @@ public class CitaDao {
                 WHERE id_veterinario = ?
                   AND fecha_cita = ?
                   AND hora_cita = ?
-                  AND estado IN ('PENDIENTE', 'CONFIRMADA', 'ATENDIDA')
+                  AND estado IN ('PENDIENTE', 'CONFIRMADA')
                   AND id_cita <> ?
                 """;
         try (Connection connection = Database.getConnection();
@@ -88,6 +88,31 @@ public class CitaDao {
                 return resultSet.getInt(1) > 0;
             }
         }
+    }
+
+    public List<Cita> listDisponiblesParaAtencion() throws SQLException {
+        String sql = """
+                SELECT c.*, CONCAT(cl.nombres, ' ', cl.apellidos) AS cliente_nombre,
+                       m.nombre AS mascota_nombre,
+                       CONCAT(u.nombres, ' ', u.apellidos) AS veterinario_nombre
+                FROM cita c
+                INNER JOIN cliente cl ON cl.id_cliente = c.id_cliente
+                INNER JOIN mascota m ON m.id_mascota = c.id_mascota
+                LEFT JOIN usuario u ON u.id_usuario = c.id_veterinario
+                LEFT JOIN atencion_clinica a ON a.id_cita = c.id_cita AND a.estado <> 'ANULADA'
+                WHERE c.estado IN ('PENDIENTE', 'CONFIRMADA')
+                  AND a.id_atencion IS NULL
+                ORDER BY c.fecha_cita ASC, c.hora_cita ASC
+                """;
+        List<Cita> items = new ArrayList<>();
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                items.add(map(resultSet));
+            }
+        }
+        return items;
     }
 
     public void save(Cita cita) throws SQLException {

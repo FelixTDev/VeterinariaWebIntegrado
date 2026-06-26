@@ -1,122 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<!DOCTYPE html>
-<html class="light" lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Citas - VetWeb Integrado</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            line-height: 1;
-        }
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
-    </style>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "surface-bright": "#f8f9fa",
-                        "on-secondary-fixed-variant": "#005236",
-                        "on-tertiary-container": "#453f20",
-                        "on-error-container": "#93000a",
-                        "inverse-surface": "#2e3132",
-                        "secondary-fixed-dim": "#4edea3",
-                        "surface-variant": "#e1e3e4",
-                        "on-primary-container": "#90a8ff",
-                        "secondary-container": "#6cf8bb",
-                        "on-primary": "#ffffff",
-                        "surface-container-high": "#e7e8e9",
-                        "primary-fixed": "#dce1ff",
-                        "inverse-on-surface": "#f0f1f2",
-                        "on-background": "#191c1d",
-                        "on-secondary-fixed": "#002113",
-                        "surface-container": "#edeeef",
-                        "on-tertiary-fixed-variant": "#4d4727",
-                        "tertiary-fixed": "#ede3b8",
-                        "surface-container-highest": "#e1e3e4",
-                        "primary-fixed-dim": "#b6c4ff",
-                        "tertiary": "#665f3d",
-                        "on-secondary": "#ffffff",
-                        "on-secondary-container": "#00714d",
-                        "on-surface-variant": "#444651",
-                        "tertiary-container": "#b4ab84",
-                        "primary-container": "#1e3a8a",
-                        "surface-container-low": "#f3f4f5",
-                        "on-error": "#ffffff",
-                        "on-primary-fixed-variant": "#264191",
-                        "on-primary-fixed": "#00164e",
-                        "secondary": "#006c49",
-                        "surface": "#f8f9fa",
-                        "surface-tint": "#4059aa",
-                        "outline-variant": "#c5c5d3",
-                        "background": "#f8f9fa",
-                        "inverse-primary": "#b6c4ff",
-                        "error-container": "#ffdad6",
-                        "surface-container-lowest": "#ffffff",
-                        "primary": "#00236f",
-                        "tertiary-fixed-dim": "#d1c79d",
-                        "secondary-fixed": "#6ffbbe",
-                        "error": "#ba1a1a",
-                        "on-surface": "#191c1d",
-                        "outline": "#757682",
-                        "surface-dim": "#d9dadb",
-                        "on-tertiary-fixed": "#201c02",
-                        "on-tertiary": "#ffffff"
-                    },
-                    borderRadius: {
-                        DEFAULT: "0.25rem",
-                        lg: "0.5rem",
-                        xl: "0.75rem",
-                        full: "9999px"
-                    },
-                    spacing: {
-                        xl: "2rem",
-                        lg: "1.5rem",
-                        md: "1rem",
-                        margin_mobile: "16px",
-                        sm: "0.5rem",
-                        gutter: "24px",
-                        xs: "0.25rem",
-                        base: "4px",
-                        sidebar_width: "280px"
-                    },
-                    fontFamily: {
-                        "label-md": ["Inter"],
-                        "body-md": ["Inter"],
-                        "headline-lg": ["Inter"],
-                        "headline-md": ["Inter"],
-                        "display-lg": ["Inter"],
-                        "body-lg": ["Inter"]
-                    },
-                    fontSize: {
-                        "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                        "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
-                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-surface text-on-surface flex min-h-screen">
-<c:set var="userInitial" value="${fn:toUpperCase(fn:substring(sessionScope.userSession.username, 0, 1))}"/>
+<c:set var="pageTitle" value="Citas"/>
+<c:set var="headerSearchPlaceholder" value="Buscar citas, mascotas o clientes..."/>
 <c:set var="pendingCount" value="0"/>
 <c:set var="confirmedCount" value="0"/>
 <c:set var="attendedCount" value="0"/>
@@ -125,76 +11,13 @@
     <c:if test="${item.estado eq 'CONFIRMADA'}"><c:set var="confirmedCount" value="${confirmedCount + 1}"/></c:if>
     <c:if test="${item.estado eq 'ATENDIDA'}"><c:set var="attendedCount" value="${attendedCount + 1}"/></c:if>
 </c:forEach>
-<aside class="fixed left-0 top-0 h-screen w-[280px] bg-[#111827] flex flex-col py-lg z-50">
-    <div class="px-lg mb-xl">
-        <h1 class="text-headline-md font-headline-md text-surface-container-lowest tracking-tight">VetWeb Integrado</h1>
-        <p class="text-label-md font-label-md text-outline-variant opacity-60">Veterinary Clinic Management</p>
-    </div>
-    <nav class="flex-1 px-sm space-y-1 custom-scrollbar overflow-y-auto">
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/dashboard"><span class="material-symbols-outlined">dashboard</span><span class="text-body-md font-body-md">Dashboard</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/clientes"><span class="material-symbols-outlined">group</span><span class="text-body-md font-body-md">Clientes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/mascotas"><span class="material-symbols-outlined">pets</span><span class="text-body-md font-body-md">Mascotas</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary-fixed font-bold border-r-4 border-secondary-fixed bg-on-primary-fixed-variant/10 transition-all" href="${pageContext.request.contextPath}/app/citas"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span><span class="text-body-md font-body-md">Citas</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/atenciones"><span class="material-symbols-outlined">medical_services</span><span class="text-body-md font-body-md">Atenciones</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/productos"><span class="material-symbols-outlined">inventory_2</span><span class="text-body-md font-body-md">Productos</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/catalogos"><span class="material-symbols-outlined">category</span><span class="text-body-md font-body-md">Catalogos</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/comprobantes"><span class="material-symbols-outlined">receipt_long</span><span class="text-body-md font-body-md">Comprobantes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/app/reportes"><span class="material-symbols-outlined">bar_chart</span><span class="text-body-md font-body-md">Reportes</span></a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg text-surface-variant hover:bg-surface-variant/10 hover:text-surface-bright transition-all" href="${pageContext.request.contextPath}/logout"><span class="material-symbols-outlined">logout</span><span class="text-body-md font-body-md">Cerrar sesion</span></a>
-    </nav>
-    <div class="mt-auto px-lg border-t border-surface-variant/10 pt-lg">
-        <div class="flex items-center gap-md">
-            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">${userInitial}</div>
-            <div class="overflow-hidden">
-                <p class="text-label-md font-label-md text-surface-bright truncate">${sessionScope.userSession.nombreCompleto}</p>
-                <p class="text-[10px] text-outline-variant uppercase tracking-wider">${sessionScope.userSession.rolNombre}</p>
-            </div>
-        </div>
-    </div>
-</aside>
+<%@ include file="includes/app-shell.jspf" %>
 
-<main class="ml-[280px] w-[calc(100%-280px)] min-h-screen flex flex-col">
-    <header class="sticky top-0 z-40 bg-surface border-b border-outline-variant flex justify-between items-center h-16 px-lg">
-        <form class="flex items-center gap-md w-full max-w-xl" method="get">
-            <div class="relative w-full">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-                <input class="w-full bg-surface-container-low border-none rounded-lg pl-10 pr-md py-2 text-body-md focus:ring-2 focus:ring-primary/20" name="search" placeholder="Buscar citas, mascotas o clientes..." type="text" value="${param.search}">
-            </div>
-            <button class="hidden" type="submit">Buscar</button>
+        <form class="hidden" method="get" id="headerSearchForm">
+            <input name="search" type="hidden" value="${param.search}" id="headerSearchMirror">
+            <input name="fecha" type="hidden" value="${param.fecha}">
+            <input name="estado" type="hidden" value="${param.estado}">
         </form>
-        <div class="flex items-center gap-lg">
-            <div class="flex items-center gap-md">
-                <button class="p-2 text-on-surface-variant hover:text-primary transition-opacity relative" type="button">
-                    <span class="material-symbols-outlined">notifications</span>
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-                </button>
-                <button class="p-2 text-on-surface-variant hover:text-primary transition-opacity" type="button">
-                    <span class="material-symbols-outlined">settings</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <div class="p-lg space-y-lg bg-surface-bright flex-1">
-        <c:if test="${not empty sessionScope.flash}">
-            <div class="flex items-start gap-sm p-md bg-secondary-container text-on-secondary-container rounded-lg border border-secondary/20">
-                <span class="material-symbols-outlined">check_circle</span>
-                <div class="flex-1">
-                    <p class="font-label-md text-label-md">Operacion exitosa</p>
-                    <p class="text-[12px]">${sessionScope.flash}</p>
-                </div>
-            </div>
-            <% session.removeAttribute("flash"); %>
-        </c:if>
-        <c:if test="${not empty error}">
-            <div class="flex items-start gap-sm p-md bg-error-container text-on-error-container rounded-lg border border-error/20">
-                <span class="material-symbols-outlined text-error">error</span>
-                <div class="flex-1">
-                    <p class="font-label-md text-label-md">Error</p>
-                    <p class="text-[12px]">${error}</p>
-                </div>
-            </div>
-        </c:if>
 
         <div class="flex justify-between items-end mb-xl">
             <div>
@@ -347,8 +170,6 @@
             </div>
         </div>
     </div>
-</main>
-
 <div class="fixed inset-0 z-[60] hidden" id="appointmentModal">
     <div class="absolute inset-0 bg-inverse-surface/40 backdrop-blur-sm" onclick="closeAppointmentModal()"></div>
     <div class="absolute right-0 top-0 h-full w-full max-w-2xl bg-surface shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="appointmentPanel">
@@ -517,6 +338,15 @@
         year: 'numeric'
     });
 
+    const headerGlobalSearch = document.getElementById('headerGlobalSearch');
+    if (headerGlobalSearch) {
+        headerGlobalSearch.value = '${fn:escapeXml(param.search)}';
+        headerGlobalSearch.addEventListener('change', function() {
+            document.getElementById('headerSearchMirror').value = this.value;
+            document.getElementById('headerSearchForm').submit();
+        });
+    }
+
     document.getElementById('estadoFiltro').addEventListener('change', function() {
         document.getElementById('appointmentsFilterForm').submit();
     });
@@ -531,5 +361,4 @@
         openAppointmentModal();
     </c:if>
 </script>
-</body>
-</html>
+<%@ include file="includes/app-shell-end.jspf" %>

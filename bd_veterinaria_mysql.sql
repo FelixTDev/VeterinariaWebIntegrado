@@ -11,6 +11,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS detalle_comprobante;
 DROP TABLE IF EXISTS comprobante;
+DROP TABLE IF EXISTS auditoria;
 DROP TABLE IF EXISTS detalle_atencion_producto;
 DROP TABLE IF EXISTS atencion_clinica;
 DROP TABLE IF EXISTS cita;
@@ -187,8 +188,20 @@ CREATE TABLE atencion_clinica (
         FOREIGN KEY (id_mascota) REFERENCES mascota(id_mascota),
     CONSTRAINT fk_atencion_veterinario
         FOREIGN KEY (id_veterinario) REFERENCES usuario(id_usuario),
+    UNIQUE KEY uk_atencion_cita (id_cita),
     CONSTRAINT chk_atencion_peso
         CHECK (peso IS NULL OR peso >= 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE auditoria (
+    id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT,
+    modulo VARCHAR(60) NOT NULL,
+    accion VARCHAR(40) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_auditoria_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 ) ENGINE=InnoDB;
 
 CREATE TABLE detalle_atencion_producto (
